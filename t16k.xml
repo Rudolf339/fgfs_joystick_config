@@ -1,0 +1,362 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+    <name type="string">Thrustmaster T.16000M</name>
+    
+    <nasal>
+	<script>
+	    var this = cmdarg().getParent();
+	    var init = !contains(caller(0)[0], "init");
+	    if (!contains(globals, "warthog"))
+	    # io.load_nasal(getprop("/sim/fg-root") ~ "/Input/Joysticks/ThrustMaster/Warthog/warthog.nas");
+
+			var jslistener = func init and call(setlistener, arg);
+			var popup = func gui.popupTip(call(sprintf, arg));
+			var is_helicopter = (func {(var n = props.globals.getNode("rotors", 0)) != nil and n.getAttribute("children")})();
+			var aircraft_type = getprop("/sim/type");
+
+			var load_overlay = func(name) {
+				foreach (var dir; [getprop("/sim/fg-home"), getprop("/sim/fg-root")]) {
+					var file = dir ~ "/Input/Joysticks/ThrustMaster/Stick/" ~ name ~ ".xml";
+					if (io.stat(file) != nil) {
+						printlog("info", "WARTHOG: loading overlay " ~ file);
+						cmdarg().setValues({command: "nasal", script: ""});
+						io.read_properties(file, this);
+						props.runBinding(cmdarg());
+						break;
+						}
+				}
+				
+				logprint(3, "loaded throttle congig for " ~ name);
+			}
+
+			foreach (var b; this.getChildren("button")) {
+				if (b.getAttribute("children") == 1) {
+					var name = b.getNode("name", 1).getValue() or "??";
+					b.setValues({binding: {command: "nasal", script: 'popup("' ~ name ~ '")'}});
+				}
+			}
+
+			var mod = 0;
+			var m = props.globals.initNode("/devices/status/joysticks/modifier", mod, "INT");
+			jslistener(m, func(n) mod = n.getValue());
+
+			var trimstep = 0.75;
+			var viewstep = 1.5;
+			var button = {18: {id: 0}};
+
+			var reset_zoom = func setprop("/sim/current-view/field-of-view", 55);
+			var viewdir = props.globals.getNode("/sim").getChildren("view");
+			forindex (var i; viewdir) {
+				var t = viewdir[i].getNode("type");
+				viewdir[i] = t != nil and t.getValue() == "lookat" ? 1 : -1;
+			}
+
+			load_overlay("generic");
+			if (is_helicopter)
+				load_overlay("helicopter");
+			if (aircraft_type)
+				load_overlay(aircraft_type);
+			foreach (var o; split(":", getprop("/input/joysticks/overlays") or ""))
+				load_overlay(o);
+			load_overlay(getprop("/sim/aircraft"));
+		</script>
+	</nasal>
+
+	<axis>
+	    <desc type="string">Aileron</desc>
+	    <binding>
+		<command type="string">property-scale</command>
+		<property type="string">/controls/flight/aileron</property>
+		<factor type="double">1</factor>
+		<offset type="double">0</offset>
+	    </binding>
+	</axis>
+	<axis n="1">
+	    <desc type="string">Elevator</desc>
+	    <binding>
+		<command type="string">property-scale</command>
+		<property type="string">/controls/flight/elevator</property>
+		<factor type="double">-1</factor>
+		<offset type="double">0</offset>
+	    </binding>
+	</axis>
+	<axis n="2">
+	    <desc type="string">Rudder</desc>
+	    <binding>
+		<command type="string">property-scale</command>
+		<property type="string">/controls/flight/rudder</property>
+		<factor type="double">2</factor>
+		<offset type="double">0</offset>
+	    </binding>
+	</axis>
+	<axis n="3">
+	    <desc type="string">Throttle All Engines</desc>
+	    <binding>
+		<command type="string">property-scale</command>
+		<property type="string">/controls/engines/throttle-all</property>
+		<factor type="double">1</factor>
+		<offset type="double">0</offset>
+	    </binding>
+	</axis>
+	<axis n="4">
+	    <desc type="string">Aileron Trim inc.</desc>
+	    <low>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">controls.aileronTrim(-1);</script>
+		</binding>
+		<repeatable type="bool">true</repeatable>
+	    </low>
+	    <high>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">controls.aileronTrim(1);</script>
+		</binding>
+		<repeatable type="bool">true</repeatable>
+	    </high>
+	</axis>
+	<axis n="5">
+	    <desc type="string">Elevator Trim inc.</desc>
+	    <low>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">controls.elevatorTrim(-1);</script>
+		</binding>
+		<repeatable type="bool">true</repeatable>
+	    </low>
+	    <high>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">controls.elevatorTrim(1);</script>
+		</binding>
+		<repeatable type="bool">true</repeatable>
+	    </high>
+	</axis>
+	<button>
+	    <desc type="string">Trigger</desc>
+	    <repeatable type="string">false</repeatable>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.trigger(1);</script>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">controls.trigger(0);</script>
+		</binding>
+	    </mod-up>
+	</button>
+
+	<!-- center button -->
+	<button n="1">
+	    <desc type="string">None</desc>
+	</button>
+
+	<!-- Left button -->
+	<button n="2">
+	    <desc type="string">View Cycle Backwards</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">view.stepView(-1);</script>
+	    </binding>
+	    <repeatable type="double">0</repeatable>
+	</button>
+
+	<!-- Right button -->
+	<button n="3">
+	    <desc type="string">View Cycle Forwards</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">view.stepView(1);</script>
+	    </binding>
+	    <repeatable type="double">0</repeatable>
+	</button>
+	
+	<button n="4">
+	    <desc type="string">Gear Toggle</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.gearTogglePosition(1);</script>
+	    </binding>
+	    <repeatable type="double">0</repeatable>
+	</button>
+	<button n="5">
+	    <desc type="string">Custom</desc>
+	    <repeatable type="bool">true</repeatable>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.adjMixture(0.25)</script>
+		<module type="string">__js1</module>
+	    </binding>
+	    <mod-up>
+		<binding type="string">
+		</binding>
+	    </mod-up>
+	</button>
+	<button n="6">
+	    <desc type="string">Brakes (air/wheel)</desc>
+	    <repeatable type="string">false</repeatable>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.applyApplicableBrakes(1);</script>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">controls.applyApplicableBrakes(0);</script>
+		</binding>
+	    </mod-up>
+	</button>
+	<button n="7">
+	    <desc type="string">Parking brakes</desc>
+	    <repeatable type="string">false</repeatable>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.parkingBrakeToggle(0);</script>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">controls.parkingBrakeToggle(1);</script>
+		</binding>
+	    </mod-up>
+	</button>
+	<button n="8">
+	    <desc type="string">Custom</desc>
+	    <repeatable type="bool">true</repeatable>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.adjMixture(-0.25)</script>
+		<module type="string">__js1</module>
+	    </binding>
+	    <mod-up>
+		<binding type="string">
+		</binding>
+	    </mod-up>
+	</button>
+	<button n="9">
+	    <desc type="string">Propeller Coarse</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.adjPropeller(-1);</script>
+	    </binding>
+	    <repeatable type="double">1</repeatable>
+	</button>
+	<button n="10">
+	    <desc type="string">Flaps Up</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.flapsDown(-1);</script>
+	    </binding>
+	    <repeatable type="double">0</repeatable>
+	</button>
+	<button n="11">
+	    <desc type="string">Custom</desc>
+	    <repeatable type="bool">false</repeatable>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+
+		    l = getprop("/controls/engines/engine/magnetos");
+		    if (l == 0)
+		    {
+		    props.setAll("/controls/engines/engine", "magnetos", 1);
+		    }
+		    elsif ( l == 1 )
+		    {
+		    props.setAll("/controls/engines/engine", "magnetos", 2);
+		    }
+		    elsif ( l == 2 )
+		    {
+		    props.setAll("/controls/engines/engine", "magnetos", 3);
+		    }
+		    elsif ( l == 3 )
+		    {
+		    props.setAll("/controls/engines/engine", "magnetos", 0);
+		    }
+
+		</script>
+		<module type="string">__js1</module>
+	    </binding>
+	    <mod-up>
+		<binding type="string">
+		</binding>
+	    </mod-up>
+	</button>
+	<button n="12">
+	    <desc type="string">NWS toggle</desc>
+	    <repeatable type="string">false</repeatable>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.toggleNWS(0);</script>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">controls.toggleNWS(1);</script>
+		</binding>
+	    </mod-up>
+	</button>
+	<button n="13">
+	    <desc type="string">Custom</desc>
+	    <repeatable type="bool">false</repeatable>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+
+		    k = getprop("/controls/fuel/tank/fuel_selector");
+		    if (k == 0)
+		    {
+		    setprop("/controls/fuel/tank/fuel_selector", 1);
+		    setprop("/controls/engines/engine/fuel-pump", 1);
+		    } else
+		    {
+		    setprop("/controls/fuel/tank/fuel_selector", 0);
+		    setprop("/controls/engines/engine/fuel-pump", 0);
+		    }
+
+		</script>
+		<module type="string">__js1</module>
+	    </binding>
+	    <mod-up>
+		<binding type="string">
+		</binding>
+	    </mod-up>
+	</button>
+	<button n="14">
+	    <desc type="string">Custom</desc>
+	    <repeatable type="string">false</repeatable>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+		    setprop("/controls/engines/engine/starter", 1);
+		    setprop("/controls/engines/engine[1]/starter", 1);
+		    setprop("/controls/engines/engine[2]/starter", 1);
+		    setprop("/controls/engines/engine[3]/starter", 1);
+		    setprop("/controls/engines/engine[4]/starter", 1);
+		</script>
+		<module type="string">__js1</module>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">setprop("/controls/engines/engine/starter", 0);
+		    setprop("/controls/engines/engine[1]/starter", 0);
+		    setprop("/controls/engines/engine[2]/starter", 0);
+		    setprop("/controls/engines/engine[3]/starter", 0);
+		    setprop("/controls/engines/engine[4]/starter", 0);
+		    </script>
+		    <module type="string">__js1</module>
+		</binding>
+	    </mod-up>
+	</button>
+	<button n="15">
+	    <desc type="string">Flaps Down</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.flapsDown(1);</script>
+	    </binding>
+	    <repeatable type="double">0</repeatable>
+	</button>
+    </PropertyList>

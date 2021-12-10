@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+    <axis n="7">
+	<desc>flaps</desc>
+	<binding>
+	    <command>property-scale</command>
+	    <property>controls/flight/flaps</property>
+	    <factor>-0.5</factor>
+	    <offset>-1</offset>
+	</binding>
+    </axis>
+    <axis n="1">
+	<desc>brake all</desc>
+	<binding>
+	    <command>property-scale</command>
+	    <property>controls/gear/brake-left</property>
+	</binding>
+	<binding>
+	    <command>property-scale</command>
+	    <property>controls/gear/brake-right</property>
+	</binding>
+    </axis>
+</PropertyList>

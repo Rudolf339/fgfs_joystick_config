@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+    <button n="6">
+        <desc>Quick select missile</desc>
+        <binding>
+            <command>nasal</command>
+            <script>
+                fire_control.quick_select_missile();
+                ja37.click();
+		setprop("/fdm/jsbsim/autoflight/athr-quick-disengage", 1);
+		var timer = maketimer(0.1, func() {
+		   setprop("/fdm/jsbsim/autoflight/athr-quick-disengage", 0);
+		});
+		timer.singleShot = 1;
+		timer.start();
+            </script>
+        </binding>
+    </button>
+
+    <button n="7">
+        <desc>Cycle weapons / radar range incr</desc>
+        <binding>
+            <command>nasal</command>
+            <script>
+		if (mod == 0) {
+                    fire_control.cycle_weapon_type();
+                    ja37.click();
+		} elsif (mod == 1) {
+		    var range = getprop("instrumentation/radar/range");
+		    if (range != 120000){
+		        setprop("instrumentation/radar/range", range * 2);
+		    }
+		    ja37.click();
+		}
+            </script>
+        </binding>
+    </button>
+
+    <button n="8">
+	<desc>IR uncage</desc>
+	<binding>
+	    <command>nasal</command>
+	    <script>
+		fire_control.uncageIRButton(1);
+                ja37.click();
+	    </script>
+	</binding>
+	<mod-up>
+	    <binding>
+		<command>nasal</command>
+		<script>
+		    fire_control.uncageIRButton(0);
+		</script>
+	    </binding>
+	</mod-up>
+    </button>
+	     
+    <button n="9">
+	<desc>radar range decr</desc>
+	<binding>
+	    <command>nasal</command>
+	    <script>
+		if (mod == 1) {
+		    var range = getprop("instrumentation/radar/range");
+		    if (range != 15000){
+		        setprop("instrumentation/radar/range", range / 2);
+		    }
+		    ja37.click();
+		}
+	    </script>
+	</binding>
+    </button>
+    
+</PropertyList>

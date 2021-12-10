@@ -1,0 +1,86 @@
+## Joysick configuration for TM TWCS & T16000M for using with FlightGear
+# controls:
+- T16000M:
+ - Hat: trim
+ - Trigger: Trigger
+ - Left button:
+  - JA Viggen: 
+   - Trigger Safe/Unsafe
+   - MOD1: Toggle Aiming Mode
+   - MOD2: Toggle A/G Mode
+  - AJS Viggen :: Toggle Safe/Unsafe
+  - A-10 :: Weapon Release
+  - A-6E :: Manual Weapon Release
+  - MiG-21 :: Weapon release
+ - Center Button:
+   - JA/AJS Viggen :: Set Referance Alt
+   - A-6E:
+    - NSW steering
+    - MOD1 :: attack mode
+ - Right Button:
+  - JA/AJS Viggen :: Autopilot Disengage
+  - JA Viggen :: MOD1 aiming mode
+  - A-6E :: Autopilot Disengage
+  - MiG-21:
+   - Autopilot Disengage
+   - MOD1: Jettison tank
+- TWCS:
+ - Pinky wheel: 7
+  - mixture
+  - MiG-21 :: throttle drum
+  - Harrier :: nozzle angle
+  - A-6E :: flaps
+ - Paddle :: diff brake
+ - ministick:
+  - cursor slew
+  - MOD1 :: view pan
+  - A-6E :: Brake
+ - Ministick button :: cursor designate
+ - Pinky button :: chaff/flare
+ - Ring button :: MOD1
+ - Rocker UP :: MOD2
+ - Rocker DOWN :: MOD3
+ - 8-way hat :: POV
+ - Upper 4-way hat :: Weapon managment
+  - Fore:
+   - Cycle Weapons
+   - MOD1 :: Radar Range increase
+  - Aft:
+   - MOD1 :: Radar Range decrease
+  - Up:
+   - JA/AJS Viggen :: (IR) Missile quick select / AT disengage
+   - MiG-21:
+    - IR select
+    - MOD1: AIR select
+   - F-16 :: dogfight override
+  - Down:
+   - JA Viggen :: Cannon quick select
+   - AJS Viggen :: IR uncage
+   - MiG-21:
+    - SAR select
+    - MOD1 :: GND select
+ - Lower 4-way hat :: secondary flight controls
+ - Fore:
+  - Speedbrake retract
+  - F-14 :: MOD1 wingsweep forward
+ - Aft:
+  - Speedbrake extend
+  - F-14 :: MOD1 wingsweep aft
+ - Up:
+  - Flaps raise
+  - F-14 :: MOD1 wingsweep aut
+  - JA Viggen:
+   - radar lock boresight
+   - MOD1: radar drop lock
+ - Down:
+  - Flaps lower
+  - F-14 :: MOD1 wingsweep bomb
+  - JA/AJS Viggen :: IFF ident
+ - Side button:
+  - reserved for Discord PTT
+  - FGcom PTT
+  - MOD1 :: wheel brake
+  - MiG-21:
+  - MOD3 :: Brake chute toggle
+  - JA/AJS Viggen:
+  - MOD3 :: Thrust reverser toggle

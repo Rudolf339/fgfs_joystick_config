@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<PropertyList>
+    <button n="1">
+	<desc>NSW Steering</desc>
+	<binding>
+	    <command>property-assign</command>
+	    <property>/controls/gear/nose-wheel-steering</property>
+	    <value>1</value>
+	</binding>
+	<mod-up>
+	    <binding>
+		<command>property-assign</command>
+		<property>/controls/gear/nose-wheel-steering</property>
+		<value>0</value>
+	    </binding>
+	</mod-up>
+    </button>
+</PropertyList>

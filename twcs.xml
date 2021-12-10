@@ -1,0 +1,609 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+  <name type="string">Thrustmaster TWCS Throttle</name>
+
+	<data>
+		<mode type="int">0</mode>
+	</data>	
+	<nasal>
+	    <script>
+		var this = cmdarg().getParent();
+		var init = !contains(caller(0)[0], "init");
+		if (!contains(globals, "warthog"))
+		# io.load_nasal(getprop("/sim/fg-root") ~ "/Input/Joysticks/ThrustMaster/Warthog/warthog.nas");
+
+			var jslistener = func init and call(setlistener, arg);
+			var popup = func gui.popupTip(call(sprintf, arg));
+			var is_helicopter = (func {(var n = props.globals.getNode("rotors", 0)) != nil and n.getAttribute("children")})();
+			var aircraft_type = getprop("/sim/type");
+
+			var load_overlay = func(name) {
+				foreach (var dir; [getprop("/sim/fg-home"), getprop("/sim/fg-root")]) {
+					var file = dir ~ "/Input/Joysticks/ThrustMaster/Throttle/" ~ name ~ ".xml";
+					if (io.stat(file) != nil) {
+						logprint("info", "WARTHOG: loading overlay " ~ file);
+						cmdarg().setValues({command: "nasal", script: ""});
+						io.read_properties(file, this);
+						props.runBinding(cmdarg());
+						break;
+						}
+				}
+			}
+
+			foreach (var b; this.getChildren("button")) {
+				if (b.getAttribute("children") == 1) {
+					var name = b.getNode("name", 1).getValue() or "??";
+					b.setValues({binding: {command: "nasal", script: 'popup("' ~ name ~ '")'}});
+				}
+			}
+
+			var mod = 0;
+			var m = props.globals.initNode("/devices/status/joysticks/modifier", mod, "INT");
+			jslistener(m, func(n) mod = n.getValue());
+
+			var trimstep = 0.75;
+			var viewstep = 1.5;
+			var button = {18: {id: 0}};
+
+			var reset_zoom = func setprop("/sim/current-view/field-of-view", 55);
+			var viewdir = props.globals.getNode("/sim").getChildren("view");
+			forindex (var i; viewdir) {
+				var t = viewdir[i].getNode("type");
+				viewdir[i] = t != nil and t.getValue() == "lookat" ? 1 : -1;
+			}
+
+			load_overlay("generic");
+			if (is_helicopter)
+				load_overlay("helicopter");
+			if (aircraft_type)
+				load_overlay(aircraft_type);
+			foreach (var o; split(":", getprop("/input/joysticks/overlays") or ""))
+			        load_overlay(o);
+			var type = getprop("/sim/aircraft");
+			if (find("f16", type) != -1) {
+			    type = "f16";
+			}
+			load_overlay(type);
+			logprint(3, "loaded throttle congig for " ~ type);
+
+		</script>
+	</nasal>
+	<axis>
+	    <desc type="string">Viggen cursor X</desc>
+	    <binding>
+		<command>property-scale</command>
+		<property>/controls/displays/cursor-slew-x</property>
+		<power>2</power>
+	    </binding>
+	</axis>
+	<axis n="1">
+	    <desc type="string">Viggen cursor Y</desc>
+	    <binding>
+		<command>property-scale</command>
+		<property>/controls/displays/cursor-slew-y</property>
+		<factor>1</factor>
+		<power>2</power>
+	    </binding>
+	</axis>
+
+	<!-- diff brake -->
+
+	<axis n="5">
+	    <desc>Differential brake</desc>
+	    <binding>
+		<command>property-scale</command>
+		<property>/controls/gear/brake-right</property>
+	    </binding>
+	    <binding>
+		<command>property-scale</command>
+		<property>/controls/gear/brake-left</property>
+		<factor>-1</factor>
+	    </binding>
+	</axis>
+
+	<axis n="8">
+    	    <desc type="string">View (horizontal)</desc>
+    	    <low>
+    		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">setprop("/sim/current-view/goal-heading-offset-deg", getprop("/sim/current-view/goal-heading-offset-deg") + 8);</script>
+		</binding>
+		<repeatable type="bool">true</repeatable>
+	    </low>
+	    <high>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">setprop("/sim/current-view/goal-heading-offset-deg", getprop("/sim/current-view/goal-heading-offset-deg") - 8);</script>
+		</binding>
+		<repeatable type="bool">true</repeatable>
+	    </high>
+	</axis>
+	<axis n="9">
+	    <desc type="string">View (vertical)</desc>
+	    <low>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">setprop("/sim/current-view/goal-pitch-offset-deg", getprop("/sim/current-view/goal-pitch-offset-deg") + 5);</script>
+		</binding>
+		<repeatable type="bool">true</repeatable>
+	    </low>
+	    <high>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">setprop("/sim/current-view/goal-pitch-offset-deg", getprop("/sim/current-view/goal-pitch-offset-deg") - 5);</script>
+		</binding>
+		<repeatable type="bool">true</repeatable>
+	    </high>
+	</axis>
+	<axis n="2">
+	    <desc type="string">Throttle (all)</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.throttleAxis();</script>
+	    </binding>
+	</axis>
+	<axis n="7">
+	    <desc type="string">Prop RPM</desc>
+	    <binding>
+		<command type="string">property-scale</command>
+		<property type="string">/controls/engines/propeller-pitch-all</property>
+		<factor type="double">1</factor>
+		<offset type="double">0</offset>
+	    </binding>
+	</axis>
+	
+	<button>
+	    <desc type="string">Discord PTT / Brakes</desc>
+	    <repeatable type="string">false</repeatable>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+		    if (mod == 1) {
+		    controls.applyBrakes(1);
+		    }
+		</script>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">controls.applyBrakes(0);</script>
+		</binding>
+	    </mod-up>
+	</button>
+	
+	<button n="1">
+	    <desc type="string">Flare release</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+		    var name = getprop("sim/aircraft");
+		    if (name == "f-14b") {
+		    setprop("ai/submodels/submodel[4]/flare-release-cmd", 1);
+		    }
+		    if (name == "f15c") {
+		    setprop("ai/submodels/submodel[5]/flare-release-cmd", 1);
+		    }
+		    if (find("f16", name) != -1 or find("Viggen", name) != -1) {
+		    setprop("ai/submodels/submodel[0]/flare-release-cmd", 1);
+		    }
+		    else if (name == "m2000-5" or name == "m2000-5b") {
+		    setprop("controls/switches/flares", 1);
+		    }
+		    else if (name == "MiG-21bis") {
+		    setprop("controls/armament/cm-trigger", 1);
+		    }
+		</script>
+		<module type="string">__js0</module>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">
+			var name = getprop("sim/aircraft");
+			if (find("f16", name) != -1) {
+			setprop("ai/submodels/submodel[0]/flare-release-cmd", 0);
+			}
+			else if (name =="m2000-5" or name == "m2000-5b") {
+			setprop("controls/switches/flares", 0);
+			}
+			else if (name == "MiG-21bis") {
+			setprop("controls/armament/cm-trigger", 0);
+			}
+		    </script>
+		    <module type="string">__js0</module>
+		</binding>
+	    </mod-up>
+	</button>
+	
+	<button n="2">
+	    <binding>
+		<command>property-assign</command>
+		<property>devices/status/joysticks/modifier</property>
+		<value>1</value>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command>property-assign</command>
+		    <property>devices/status/joysticks/modifier</property>
+		    <value>0</value>
+		</binding>
+	    </mod-up>
+	</button>
+
+	<!-- Radar Range -->
+
+	<button n="3">
+	    <desc type="string">Radar range increase</desc>	
+	    <!-- <binding> -->
+	    <!-- 	  <command type="string">nasal</command> -->
+	    <!-- 	  <script type="string"> -->
+	    <!-- 				var name = getprop("sim/aircraft"); -->
+	    <!-- 				if (name == "f-14b" or name == "f15c" or find("f16", name) != -1) { -->
+	    <!-- 					awg_9.range_control(-1); -->
+	    <!-- 				} -->
+	    <!-- 				else if (name == "MiG-21bis") {	 -->
+	    <!-- 					var AG = getprop("controls/armament/panel/ir-sar-switch"); -->
+	    <!-- 					if (AG != 0) { -->
+	    <!-- 						setprop("controls/armament/panel/ir-sar-switch", AG - 1); -->
+	    <!-- 					} -->
+	    <!-- 				} -->
+	    <!-- 				else if (name == "m2000-5" or name =="m2000-5b") { -->
+	    <!-- 					mirage2000.myRadar3.switch_distance_dcs(); -->
+	    <!-- 					setprop("instrumentation/radar/range", mirage2000.myRadar3.get_radar_distance()); -->
+	    <!-- 					setprop("/instrumentation/radar/range-selected",mirage2000.myRadar3.get_radar_distance()); -->
+	    <!-- 				} -->
+	    <!-- 				else if (find("Viggen", name) != -1) { -->
+	    <!-- 					var range = getprop("instrumentation/radar/range"); -->
+	    <!-- 					if (range != 120000){ -->
+	    <!-- 						setprop("instrumentation/radar/range", range * 2); -->
+	    <!-- 					} -->
+	    <!-- 					ja37.click(); -->
+	    <!-- 				} -->
+	    <!-- 				else if (name == "MiG-15bis") { -->
+	    <!-- 					MIG15BIS.more_sight_distance(); -->
+	    <!-- 				} -->
+	    
+	    <!-- 			</script> -->
+	    <!-- <module type="string">__js0</module> -->
+	    <!--</binding>-->
+	    
+	    <binding>
+		<command>property-assign</command>
+		<property>devices/status/joysticks/modifier</property>
+		<value>2</value>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command>property-assign</command>
+		    <property>devices/status/joysticks/modifier</property>
+		    <value>0</value>
+		</binding>
+	    </mod-up>
+	</button>
+	
+	<button n="4">
+	    <desc type="string">Radar range decrease</desc>
+	    <!--   <binding> -->
+	    <!-- 	  <command type="string">nasal</command> -->
+	    <!-- 	  <script type="string"> -->
+	    <!-- 				var name = getprop("sim/aircraft"); -->
+	    <!-- 				if (name == "f-14b" or name == "f15c" or find("f16", name) != -1){ -->
+	    <!-- 					awg_9.range_control(1); -->
+	    <!-- 				} -->
+	    <!-- 				else if (name == "MiG-21bis") {	 -->
+	    <!-- 					var AG = getprop("controls/armament/panel/ir-sar-switch"); -->
+	    <!-- 					if (AG != 2) { -->
+	    <!-- 						setprop("controls/armament/panel/ir-sar-switch", AG + 1); -->
+	    <!-- 					} -->
+	    <!-- 				} -->
+	    <!-- 				else if (name == "m2000-5" or name =="m2000-5b") { -->
+	    <!-- 					mirage2000.myRadar3.switch_distance_ics(); -->
+	    <!-- 					setprop("instrumentation/radar/range", mirage2000.myRadar3.get_radar_distance()); -->
+	    <!-- 					setprop("/instrumentation/radar/range-selected",mirage2000.myRadar3.get_radar_distance()); -->
+	    <!-- 				} -->
+	    <!-- 				else if (find("Viggen", name) != -1) { -->
+	    <!-- 				} -->
+	    <!-- 				else if (name == "MiG-15bis") { -->
+	    <!-- 					MIG15BIS.less_sight_distance(); -->
+	    <!-- 				} -->
+	    <!--   </script> -->
+	    <!--   <module type="string">__js0</module> -->
+	    <!-- </binding> -->
+
+	    <binding>
+		<command>property-assign</command>
+		<property>devices/status/joysticks/modifier</property>
+		<value>3</value>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command>property-assign</command>
+		    <property>devices/status/joysticks/modifier</property>
+		    <value>0</value>
+		</binding>
+	    </mod-up>
+	    
+	</button>
+	
+	<!-- Viggen cursor click -->
+	<button n="5">
+	    <desc>Viggen Cursor click</desc>
+	    <binding>
+		<command>property-assign</command>
+		<property>controls/displays/cursor-click</property>
+		<value>1</value>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command>property-assign</command>
+		    <property>controls/displays/cursor-click</property>
+		    <value>0</value>
+		</binding>
+	    </mod-up>
+	</button>
+	
+	<!-- Weapon selection -->
+	<!-- var name = getprop("sim/aircraft"); -->
+	<!-- if (name == "f-14b") { -->
+	<!-- 	var pos = getprop("sim/model/f-14b/controls/armament/stick-selector") + 1; -->
+	<!-- 	if (pos == 4 ) { -->
+	<!-- 		pos = 0; -->
+	<!-- 	} -->
+	<!-- 	setprop("sim/model/f-14b/controls/armament/stick-selector", pos); -->
+	<!-- }  -->
+	<!-- if (name == "f15c") { -->
+	<!-- 	var pos = getprop("sim/model/f15/controls/armament/weapon-selector") + 1; -->
+	<!-- 	if (pos >= 3) { -->
+	<!-- 		pos = 2; -->
+	<!-- 	} -->
+	<!-- 	setprop("sim/model/f15/controls/armament/weapon-selector", pos); -->
+	<!-- } -->
+	<!-- else if (name == "MiG-21bis") { -->
+	<!-- 	var pos = getprop("controls/armament/panel/pylon-knob") + 1; -->
+	<!-- 	if (pos == 11) { -->
+	<!-- 		pos = 0; -->
+	<!-- 	} -->
+	<!-- 	setprop("controls/armament/panel/pylon-knob", pos); -->
+	<!-- }  -->
+	<!-- else if (name == "m2000-5" or name == "m2000-5b" or find("f16", name) != -1 ) { -->
+	<!-- 	pylons.fcs.cycleLoadedWeapon(); -->
+	<!-- } -->
+	<!-- else if (name == "JA37-Viggen" or name == "AJ37-Viggen" or name == "AJS37-Viggen") { -->
+	<!-- 	armament.cycle_weapons(); -->
+	<!-- } -->
+	<!-- else if (name == "p51d-jsbsim") { -->
+	<!-- 	if (getprop("/controls/armament/weapons-select") != 3) { -->
+	<!-- 		setprop("/controls/armament/weapons-select", getprop("/controls/armament/weapons-select") + 1); -->
+	<!-- 	} else { -->
+	<!-- 		setprop("/controls/armament/weapons-select", 0); -->
+	<!-- 	} -->
+	<!-- } -->
+
+	<button n="7">
+	    <desc type="string">weapon select</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+		    pylons.fcs.cycleLoadedWeapon();
+		</script>
+		<module type="string">__js0</module>
+		<offset type="double">1</offset>
+	    </binding>
+	    <mod-up>
+		<binding n="0" type="string">
+		</binding>
+		<binding n="0">
+		    <offset type="double">1</offset>
+		</binding>
+	    </mod-up>
+	</button>
+
+	<button n="9">
+	    <desc type="string">Previous weapon</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+		    var name = getprop("sim/aircraft");
+		    if (name == "f-14b") {
+		    var pos = getprop("sim/model/f-14b/controls/armament/stick-selector") - 1;
+		    if(pos == -1) {
+		    pos = 3;
+		    }
+		    setprop("sim/model/f-14b/controls/armament/stick-selector", pos);
+		    }
+ 		    if (name == "f15c") {
+		    var pos = getprop("sim/model/f15/controls/armament/weapon-selector") - 1;
+		    if(pos == -1) {
+		    pos = 0;
+		    }
+		    setprop("sim/model/f15/controls/armament/weapon-selector", pos);
+		    } 
+		    else if (name == "MiG-21bis") {
+		    var pos = getprop("controls/armament/panel/pylon-knob") - 1;
+		    if (pos == -1) {
+		    pos = 10;
+		    }
+		    setprop("controls/armament/panel/pylon-knob", pos);
+		    } 
+		    else if (name == "m2000-5" or name == "m2000-5b" or find("f16", name) != -1) {
+		    pylons.fcs.cycleLoadedWeapon();
+		    }
+		    else if (name == "JA37-Viggen" or name == "AJ37-Viggen" or name == "AJS37-Viggen") {
+		    armament.cycle_weapons();
+		    }
+		    else if (name == "p51d-jsbsim") {
+		    if (getprop("/controls/armament/weapons-select") != 0) {
+		    setprop("/controls/armament/weapons-select", getprop("/controls/armament/weapons-select") - 1);
+		    } else {
+		    setprop("/controls/armament/weapons-select", 3);
+		    }
+		    }
+
+		</script>
+		<module type="string">__js0</module>
+	    </binding>
+	    <mod-up>
+		<binding type="string">
+		</binding>
+	    </mod-up>
+	</button>
+
+
+	<!-- up -->
+	<button n="6">
+	    <desc type="string">custom</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+		    var name = getprop("sim/aircraft");
+		    if (name == "f-14b") {
+		    setprop("sim/model/f-14b/instrumentation/radar-awg-9/select-target", 1);
+		    }
+		    if (name == "f15c") {
+		    setprop("sim/model/f15c/instrumentation/radar-awg-9/select-target", 1);
+		    }
+		    else if (find("f16", name) != -1) {
+		    setprop("/sim/model/f16/instrumentation/radar-awg-9/select-target", "1");
+		    }
+		    else if (name == "m2000-5" or name == "m2000-5b") {
+		    mirage2000.myRadar3.next_Target_Index();
+		    }
+		    else if (name == "MiG-21bis") {
+		    arm_locking.radar_seekTarget();
+		    setprop("/controls/armament/gunsight/dampening", 1);
+		    }
+		</script>
+		<module type="string">__js0</module>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <condition>
+			<property type="string">sim/aircraft</property>
+			<value type="string">MiG-21bis</value>
+		    </condition>
+		    <property type="string">controls/armament/gunsight/damening</property>
+		    <value type="string">0</value>
+		</binding>
+	    </mod-up>
+	</button>
+
+	<button n="8">
+	    <desc type="string">Previous Target</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+		    var name = getprop("sim/aircraft");
+		    if (name == "f-14b") {
+		    setprop("sim/model/f-14b/instrumentation/radar-awg-9/select-target", -1);
+		    }
+		    if (name == "f15c") {
+		    setprop("sim/model/f15c/instrumentation/radar-awg-9/select-target", -1);
+		    }
+		    else if (find("f16", name) != 1) {
+		    setprop("/sim/model/f16/instrumentation/radar-awg-9/select-target", -1);
+		    }
+		    else if (name == "m2000-5" or name == "m2000-5b") {
+		    mirage2000.myRadar3.previous_Target_Index();
+		    }
+		    else if (name == "MiG-21bis") {
+		    arm_locking.unlockTarget();
+		    }
+		    else if (name =="JA37-Viggen" or name == "AJ37-Viggen" or name == "AJS37-Viggen") {
+		    radar_logic.centerTarget();
+		    }
+		</script>
+		<module type="string">__js0</module>
+	    </binding>
+	    <mod-up>
+		<binding type="string">
+		</binding>
+	    </mod-up>
+	</button>
+	<button n="10">
+	    <desc type="string">Flaps Up</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+		    if (mod == 0) {
+		    controls.flapsDown(-1);
+		    } else {
+		    setprop("/instrumentation/gci/picture", 1);
+		    if (getprop("sim/aircraft") == "f-14b") {
+		    f14.set_sweep(0);
+		    }
+		    else {
+		    setprop("sim/rendering/als-filters/use-night-vision", 1 - getprop("sim/rendering/als-filters/use-night-vision"));
+		    }
+		    }
+		</script>
+	    </binding>
+	    <repeatable type="double">0</repeatable>
+	</button>
+	<button n="11">
+	    <desc type="string">Spoilers Retract</desc>
+	    <repeatable type="string">true</repeatable>
+	    <interval>0.4</interval>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+		    if (mod == 0) {
+		    controls.stepSpoilers(-1);
+		    } else {
+		    setprop("/instrumentation/gci/bogeydope", 1);
+		    if (getprop("sim/aircraft") == "f-14b") {
+		    f14.move_wing_sweep(-1);
+		    }
+		    else if (getprop("/sim/aircraft") == "p51d-jsbsim") {
+		    if (getprop("/controls/armament/gunsight/range") != 2400) {
+		    setprop("/controls/armament/gunsight/range", getprop("/controls/armament/gunsight/range") + 50);
+		    }
+		    }
+		    }
+		</script>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">controls.stepSpoilers(0);</script>
+		</binding>
+	    </mod-up>
+	</button>
+	<button n="12">
+	    <desc type="string">Flaps Down</desc>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">controls.flapsDown(1);</script>
+	    </binding>
+	    <repeatable type="double">0</repeatable>
+	</button>
+	<button n="13">
+	    <desc type="string">Spoilers Deploy</desc>
+	    <repeatable type="string">true</repeatable>
+	    <interval>0.4</interval>
+	    <binding>
+		<command type="string">nasal</command>
+		<script type="string">
+		    if (mod == 0) {
+		    controls.stepSpoilers(1);
+		    } else {
+		    setprop("/instruments/gci/cutoff", 1);
+		    if (getprop("sim/aircraft") == "f-14b") {
+		    f14.move_wing_sweep(1);
+		    }
+		    else if (getprop("/sim/aircraft") == "p51d-jsbsim") {
+		    if (getprop("/controls/armament/gunsight/range") != 600) {
+		    setprop("/controls/armament/gunsight/range", getprop("/controls/armament/gunsight/range") - 50);
+		    }
+		    }
+		    }
+		</script>
+	    </binding>
+	    <mod-up>
+		<binding>
+		    <command type="string">nasal</command>
+		    <script type="string">controls.stepSpoilers(0);</script>
+		</binding>
+	    </mod-up>
+	</button>
+    </PropertyList>

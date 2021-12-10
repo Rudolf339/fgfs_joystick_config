@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<PropertyList>
+    <button n="1">
+	<desc>Flare/DLC</desc>
+	<binding>
+            <command>property-toggle</command>
+            <property>/fdm/jsbsim/fcs/stick-dlc-mf-switch</property>
+            <value type="bool">true</value>
+        </binding>
+    </button>
+</PropertyList>

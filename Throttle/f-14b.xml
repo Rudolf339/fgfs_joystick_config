@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<PropertyList>
+    <axis n="5">
+	<desc>Differential brake</desc>
+	<binding>
+	    <command>property-scale</command>
+	    <property>/controls/gear/brake-right</property>
+	</binding>
+	<binding>
+	    <command>property-scale</command>
+	    <property>/controls/gear/brake-left</property>
+	    <factor>-1</factor>
+	</binding>
+	<binding>
+	    <command>property-scale</command>
+	    <property>/fdm/jsbsim/fcs/stick-thumbwheel-norm</property>
+	</binding>
+    </axis>
+</PropertyList>

@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<PropertyList>
+    <button n="1">
+	<desc>Radar Lock</desc>
+        <binding>
+            <command>nasal</command>
+            <script>arm_locking.radar_seekTarget();</script>
+        </binding>
+        <binding>
+            <command>property-assign</command>
+            <property>/controls/armament/gunsight/damping</property>
+            <value>1</value>
+        </binding>
+        <mod-up>
+            <binding>
+                <command>property-assign</command>
+                <property>/controls/armament/gunsight/damping</property>
+                <value>0</value>
+            </binding>
+        </mod-up>
+    </button>
+    
+    <button n="2">
+	<desc>Weapon Release</desc>
+	<binding>
+            <command>property-assign</command>
+            <property>fdm/jsbsim/systems/armament/release</property>
+            <value>1</value>
+        </binding>
+        <mod-up>
+            <binding>
+                <command>property-assign</command>
+                <property>fdm/jsbsim/systems/armament/release</property>
+                <value>0</value>
+            </binding>
+        </mod-up>
+    </button>
+    <button n="3">
+	<desc>A/P disconnect / tank jettison</desc>
+	<binding>
+	    <command>nasal</command>
+	    <script>
+		if (mod == 0) {
+		autopilot.panel_button("off");
+		setprop("/fdm/jsbsim/fcs/elevator-ap-cmd-norm", 0);
+		setprop("/fdm/jsbsim/fcs/aileron-ap-cmd-norm", 0);
+		setprop("/fdm/jsbsim/fcs/rudder-ap-cmd-norm", 0);
+		}
+		# elsif (mod == 1) {
+		# setprop("/controls/armament/jettison/center_tank", 1);
+		# }
+	    </script>
+	</binding>
+        <!-- <mod-up> -->
+        <!--     <binding> -->
+        <!--         <command>nasal</command> -->
+	<!-- 	<script> -->
+	<!-- 	    if (mod == 1) { -->
+	<!-- 	    setprop("/controls/armament/jettison/center_tank", 0); -->
+	<!-- 	    } -->
+	<!-- 	</script> -->
+        <!--     </binding> -->
+        <!-- </mod-up> -->
+    </button>
+</PropertyList>

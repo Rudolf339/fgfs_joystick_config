@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<PropertyList>
+    <axis n="1">
+	<desc>brake all</desc>
+	<binding>
+	    <command>property-scale</command>
+	    <property>controls/gear/brake-left</property>
+	</binding>
+	<binding>
+	    <command>property-scale</command>
+	    <property>controls/gear/brake-right</property>
+	</binding>
+    </axis>
+    <axis n="7">
+	<desc>Throttle drum</desc>
+	<binding>
+	    <command>property-scale</command>
+	    <property>controls/armament/gunsight/throttle-drum</property>
+	</binding>
+    </axis>
+
+    <button n="7">
+	<desc>pylon selector CW</desc>
+        <repeatable>false</repeatable>
+        <binding>
+            <command>property-adjust</command>
+            <property>/controls/armament/panel/pylon-knob</property>
+            <step>1</step>
+            <min>0</min>
+            <max>11</max>
+            <wrap>true</wrap>
+        </binding>
+    </button>
+    <button n="9">
+	<desc> pylon selector CCW</desc>
+        <repeatable>false</repeatable>
+        <binding>
+            <command>property-adjust</command>
+            <property>/controls/armament/panel/pylon-knob</property>
+            <step>-1</step>
+            <min>0</min>
+            <max>11</max>
+            <wrap>true</wrap>
+        </binding>
+    </button>
+</PropertyList>

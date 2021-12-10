@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+    <button n="1">
+        <desc>Set reference altitude</desc>
+        <binding>
+            <command>nasal</command>
+            <script>displays.common.refAltButton(); ja37.click();</script>
+        </binding>
+    </button>
+    
+    <button n="2">
+	<desc>Trigger Safe/Unsafe</desc>
+	<binding>
+	    <command>nasal</command>
+	    <script>
+		if (mod == 0) {
+		    setprop("controls/armament/trigger-unsafe", 1 - getprop("controls/armament/trigger-unsafe"));
+		    ja37.click();
+		} elsif (mod == 1) {
+		    modes.toggle_aiming_mode();
+		}
+	    </script>
+	</binding>
+    </button>
+
+    <button n="3">
+        <desc>Autopilot quick-disengage</desc>
+        <binding>
+            <command>nasal</command>
+            <script>
+		autoflight.System.apQuickDisengage();
+		ja37.click();
+            </script>
+        </binding>
+    </button>
+</PropertyList>

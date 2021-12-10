@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+    <button n="1">
+        <desc>Set reference altitude</desc>
+        <binding>
+            <command>nasal</command>
+            <script>displays.common.refAltButton(); ja37.click();</script>
+        </binding>
+    </button>
+    
+    <button n="2">
+	<desc>Trigger Safe/Unsafe</desc>
+	<binding>
+	    <command>property-toggle</command>
+	    <property>controls/armament/trigger-unsafe</property>
+	</binding>
+	<binding>
+	    <command>nasal</command>
+	    <script>ja37.click()</script>
+	</binding>
+    </button>
+
+    <button n="3">
+        <desc>Autopilot quick-disengage</desc>
+        <binding>
+            <command>nasal</command>
+            <script>
+		autoflight.System.apQuickDisengage();
+		ja37.click();
+            </script>
+        </binding>
+    </button>
+</PropertyList>
