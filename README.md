@@ -1,4 +1,9 @@
 ## Joysick configuration for TM TWCS & T16000M for using with FlightGear
+Author: Jüttner Domokos (Rudolf)
+License: GPLv2+
+
+Based on the Thrustmaster Warthog configuration file from FGDATA
+
 # controls:
 - T16000M:
  - Hat: trim
